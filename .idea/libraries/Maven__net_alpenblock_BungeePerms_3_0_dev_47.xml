@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: net.alpenblock:BungeePerms:3.0-dev-47">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/net/alpenblock/BungeePerms/3.0-dev-47/BungeePerms-3.0-dev-47.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/net/alpenblock/BungeePerms/3.0-dev-47/BungeePerms-3.0-dev-47-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/net/alpenblock/BungeePerms/3.0-dev-47/BungeePerms-3.0-dev-47-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
