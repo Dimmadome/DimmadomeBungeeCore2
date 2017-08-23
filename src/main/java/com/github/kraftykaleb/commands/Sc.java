@@ -1,6 +1,7 @@
 package com.github.kraftykaleb.commands;
 
 import com.github.kraftykaleb.Main;
+import com.github.kraftykaleb.listeners.DiscordBot;
 import net.alpenblock.bungeeperms.BungeePerms;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
@@ -32,6 +33,7 @@ public class Sc extends Command {
                     return;
                 } else if (args.length == 1) {
                     plugin.sendStaffMessage(((ProxiedPlayer) sender).getDisplayName() + ChatColor.WHITE + ": " + args[0]);
+                    plugin.discordBot.sendDiscordMessage(sender.getName(), args[0]);
                     //plugin.session.sendMessage(channel, (sender.getName() + ": " + args[0]));
                     return;
                 }
@@ -41,6 +43,7 @@ public class Sc extends Command {
                 }
                 String msg = builder.toString();
                 plugin.sendStaffMessage(((ProxiedPlayer) sender).getDisplayName() + ChatColor.WHITE + ": " + msg);
+                plugin.discordBot.sendDiscordMessage(sender.getName(), msg);
                 //plugin.session.sendMessage(channel, (sender.getName() + ": " + msg));
                 return;
             }

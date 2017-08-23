@@ -237,6 +237,7 @@ public class onJoin implements Listener {
 
     public void staffJoin (ProxiedPlayer player) {
         if (BungeePerms.getInstance().getPermissionsManager().getUser(player.getName()).hasPerm("soontm.staff") || player.getDisplayName().contains("ADMIN") || player.getDisplayName().contains("MOD") || player.getDisplayName().contains("HELPER")) {
+            //plugin.discordBot
             for (ProxiedPlayer player1 : ProxyServer.getInstance().getPlayers()) {
                 if (BungeePerms.getInstance().getPermissionsManager().getUser(player1.getName()).hasPerm("soontm.staff")) {
                     player1.sendMessage(new TextComponent(ChatColor.DARK_GREEN + "[STAFF] " + player.getDisplayName() + ChatColor.YELLOW + " joined."));

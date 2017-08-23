@@ -1,6 +1,7 @@
 package com.github.kraftykaleb;
 
 import com.github.kraftykaleb.commands.*;
+import com.github.kraftykaleb.listeners.DiscordBot;
 import com.github.kraftykaleb.listeners.onJoin;
 import com.github.kraftykaleb.listeners.onKick;
 import com.google.common.io.ByteStreams;
@@ -49,6 +50,7 @@ public class Main extends Plugin {
 
     public Set<String> serverList;
     public SlackBot slackBot;
+    public DiscordBot discordBot;
 
     public HashMap<String, Configuration> files = new HashMap<>();
     public HashMap<String, Integer> skyflagwins = new HashMap<>();
@@ -65,6 +67,8 @@ public class Main extends Plugin {
 
         registerCommands();
 
+
+        discordBot = new DiscordBot("MzQ5MzkwOTU5MzQ5MzM0MDE2.DH4Unw.VoYKLJNM55eW9Uusklsb2Eas9qw");
 
         slackBot = new SlackBot();
 
