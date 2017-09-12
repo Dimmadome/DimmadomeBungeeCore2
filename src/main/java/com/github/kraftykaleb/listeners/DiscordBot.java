@@ -21,9 +21,12 @@ import java.util.concurrent.Future;
  */
 public class DiscordBot implements Listener {
 
+    private Main plugin;
+
     String botToken = "";
 
-    public DiscordBot (String token) {
+    public DiscordBot (String token, Main instance) {
+        plugin = instance;
         DiscordAPI api = Javacord.getApi(token, true);
         botToken = token;
         api.connect(new FutureCallback<DiscordAPI>() {
@@ -32,11 +35,13 @@ public class DiscordBot implements Listener {
                 api.registerListener(new MessageCreateListener() {
                     @Override
                     public void onMessageCreate(DiscordAPI discordAPI, Message message) {
-                        if (message.getChannelReceiver().getName().equals("staffchat")) {
-                            if (message.getAuthor().hasNickname(message.getChannelReceiver().getServer())) {
-                                Main.sendStaffMessage(ChatColor.YELLOW + "[DISCORD] " + message.getAuthor().getNickname(message.getChannelReceiver().getServer()) + ChatColor.WHITE + ": " + message.getContent());
-                            } else {
-                                Main.sendStaffMessage(ChatColor.YELLOW + "[DISCORD] " + message.getAuthor().getName() + ChatColor.WHITE + ": " + message.getContent());
+                        if (message.getChannelReceiver().getId().equals("349390716159655937")) {
+                            if (!message.getAuthor().getId().equals("349390959349334016")) {
+                                if (message.getAuthor().hasNickname(message.getChannelReceiver().getServer())) {
+                                    plugin.sendStaffMessage(ChatColor.YELLOW + "[DISCORD] " + message.getAuthor().getNickname(message.getChannelReceiver().getServer()) + ChatColor.WHITE + ": " + message.getContent());
+                                } else {
+                                    plugin.sendStaffMessage(ChatColor.YELLOW + "[DISCORD] " + message.getAuthor().getName() + ChatColor.WHITE + ": " + message.getContent());
+                                }
                             }
                         }
                     }
@@ -53,24 +58,16 @@ public class DiscordBot implements Listener {
 
     public void sendDiscordMessage(String name, String message) {
 
-        MessageBuilder builder = new MessageBuilder();
-
-        builder.append(name + ": " + message);
-        String msg = builder.build();
-
-
-
         DiscordAPI api = Javacord.getApi("MzQ5MzkwOTU5MzQ5MzM0MDE2.DH4Unw.VoYKLJNM55eW9Uusklsb2Eas9qw", true);
 
         api.connect(new FutureCallback<DiscordAPI>() {
             @Override
             public void onSuccess(DiscordAPI discordAPI) {
-                //api.getServerById("349290276646551563").getChannelById("349390716159655937").sendMessage(name + ": " + message);
 
                 api.getYourself().updateNickname(api.getServerById("349290276646551563"), "StaffChat: " + name);
                 final MessageReceiver receiver = api.getChannelById("349390716159655937");
-                receiver.sendMessage(message);
-                api.getYourself().updateNickname(api.getServerById("349290276646551563"), "StaffChat");
+                receiver.sendMessage(name + ": " + message);
+                //api.getYourself().updateNickname(api.getServerById("349290276646551563"), "StaffChat");
 
             }
 
@@ -79,7 +76,5 @@ public class DiscordBot implements Listener {
 
             }
         });
-
-         //api.getServerById("349290276646551563").getChannelById("349390716159655937").sendMessage(name + ": " + message);
     }
 }

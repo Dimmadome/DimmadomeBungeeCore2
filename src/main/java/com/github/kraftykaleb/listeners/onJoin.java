@@ -11,6 +11,7 @@ import net.md_5.bungee.api.event.PostLoginEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 
+import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.text.DateFormat;
@@ -34,10 +35,24 @@ public class onJoin implements Listener {
 
     @EventHandler
     public void onJoin(PostLoginEvent e) {
-        plugin.openConnection();
+
         p = e.getPlayer();
         plugin.findHypixelPlayer(p);
         plugin.findHypixelGuild(p);
+
+        /*try {
+            new HypixelPlayer(p.getUniqueId().toString(), "811f839c-b801-48e0-a693-a857e48261a0").getPlayerStats().getCommonStats();
+        } catch (RequestTypeException e1) {
+            e1.printStackTrace();
+        } catch (PlayerNonExistentException e1) {
+            e1.printStackTrace();
+        } catch (NoPlayerStatsException e1) {
+            e1.printStackTrace();
+        } catch (MalformedAPIKeyException e1) {
+            e1.printStackTrace();
+        } catch (IOException e1) {
+            e1.printStackTrace();
+        }*/
 
         try {
             if (plugin.playerDataContainsPlayer(e.getPlayer())) {
@@ -49,50 +64,16 @@ public class onJoin implements Listener {
                 if (resultSet.getBoolean("banned")) {
                     BungeePerms.getInstance().getPermissionsManager().deleteUser(BungeePerms.getInstance().getPermissionsManager().getUser(p.getName()));
                     p.disconnect(new TextComponent("You are permanently banned from the server for\n" + ChatColor.RED + /*REASON HERE*/"Banned from guild [A]"));
-                    return;
+
                 }
-            } else {
-
-                ProxyServer.getInstance().getScheduler().schedule(plugin, new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            long time = System.currentTimeMillis();
-                            PreparedStatement newPlayer = plugin.connection.prepareStatement("INSERT INTO `player_data` values(?,?,?,0,1000,0," + time + ",?,?,0,0,0,0,0,?);");
-                            newPlayer.setString(1, e.getPlayer().getUniqueId().toString());
-                            newPlayer.setString(2, e.getPlayer().getName());
-                            if (plugin.assignedguilds.containsKey(p.getName())) {
-                                if (plugin.assignedguilds.get(p.getName()) != null) {
-                                    newPlayer.setString(3, plugin.assignedguilds.get(p.getName()));
-                                    newPlayer.setString(4, plugin.hypixelranks.get(p.getName()));
-                                    newPlayer.setString(5, plugin.guildranks.get(p.getName()));
-                                } else {
-                                    newPlayer.setString(3, "GUILDLESS");
-                                    newPlayer.setString(4, plugin.hypixelranks.get(p.getName()));
-                                    newPlayer.setString(5, "NORANK");
-                                }
-                            } else {
-
-                                newPlayer.setString(3, "GUILDLESS");
-                                newPlayer.setString(4, plugin.hypixelranks.get(p.getName()));
-                                newPlayer.setString(5, "NORANK");
-                            }
-                            newPlayer.setString(6, "NONE");
-                            newPlayer.execute();
-                            newPlayer.close();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }, 1, TimeUnit.SECONDS);
-                ProxyServer.getInstance().broadcast(new TextComponent(ChatColor.RED + "[BOT] SoonTM: " + ChatColor.YELLOW + "Please welcome " + p.getDisplayName() + ChatColor.YELLOW + " to the server!"));
-                ProxyServer.getInstance().getLogger().log(Level.INFO, "Created a new player on the database!");
+                resultSet.close();
+                sql.close();
             }
         } catch (Exception error) {
             error.printStackTrace();
         }
-
-        if (plugin.config.getString(p.getUniqueId().toString() + ".ip") == null) {
+/*
+        if (plugin.config.getString(p.getUniqueId().toString() + ".ip") != null) {
             if (!(p.getAddress().getAddress().getHostAddress().toString().equals(plugin.config.getString(p.getUniqueId().toString() + ".ip")))) {
                 if (BungeePerms.getInstance().getPermissionsChecker().hasPerm(p.getName(), "soontm.staff")) {
                     p.disconnect(new TextComponent(ChatColor.RED + "You have been permanently banned from this server. \nYour account might be compromised, since this is a staff account. \nPlease contact a guild admin to be unbanned."));
@@ -100,6 +81,7 @@ public class onJoin implements Listener {
                 }
             }
         }
+        */
 
             //FIRST JOIN OF THE SERVER
         if (plugin.config.get(p.getUniqueId().toString() + ".ip") == null) {
@@ -133,124 +115,114 @@ public class onJoin implements Listener {
         ProxyServer.getInstance().getScheduler().schedule(plugin, new Runnable() {
             public void run() {
                 staffJoin(p);
+                //ProxyServer.getInstance().broadcast(new TextComponent(plugin.plusColor.get(p.getName())));
 
-
-                try {
                     if (plugin.playerDataContainsPlayer(e.getPlayer())) {
-                        PreparedStatement sql = plugin.connection.prepareStatement("SELECT skyflag_wins FROM `player_data` WHERE player=?;");
-                        sql.setString(1, e.getPlayer().getUniqueId().toString());
-
-                        ResultSet resultSet = sql.executeQuery();
-                        resultSet.next();
-                        plugin.skyflagwins.put(p.getName(), resultSet.getInt("skyflag_wins"));
 
                         if (plugin.assignedguilds.containsKey(p.getName())) {
                             if (plugin.assignedguilds.get(p.getName()) != null) {
-                                PreparedStatement rankUpdate = plugin.connection.prepareStatement("UPDATE `player_data` SET rank=? WHERE player=?;");
-                                rankUpdate.setString(1, plugin.hypixelranks.get(p.getName()));
-                                rankUpdate.setString(2, e.getPlayer().getUniqueId().toString());
-                                rankUpdate.executeUpdate();
+                                try {
+                                    PreparedStatement rankUpdate = plugin.connection.prepareStatement("UPDATE `player_data` SET rank=? WHERE player=?;");
+                                    rankUpdate.setString(1, plugin.hypixelranks.get(p.getName()));
+                                    rankUpdate.setString(2, e.getPlayer().getUniqueId().toString());
+                                    rankUpdate.executeUpdate();
 
-                                PreparedStatement guildUpdate = plugin.connection.prepareStatement("UPDATE `player_data` SET guild=? WHERE player=?;");
-                                guildUpdate.setString(1, plugin.assignedguilds.get(p.getName()));
-                                guildUpdate.setString(2, e.getPlayer().getUniqueId().toString());
-                                guildUpdate.executeUpdate();
+                                    PreparedStatement plusColorUpdate = plugin.connection.prepareStatement("UPDATE `player_data` SET plus_color=? WHERE player=?;");
+                                    plusColorUpdate.setString(1, plugin.plusColor.get(p.getName()));
+                                    plusColorUpdate.setString(2, e.getPlayer().getUniqueId().toString());
+                                    plusColorUpdate.executeUpdate();
 
-                                PreparedStatement guildRankUpdate = plugin.connection.prepareStatement("UPDATE `player_data` SET rank_guild=? WHERE player=?;");
-                                guildRankUpdate.setString(1, plugin.guildranks.get(p.getName()));
-                                guildRankUpdate.setString(2, e.getPlayer().getUniqueId().toString());
-                                guildRankUpdate.executeUpdate();
+                                    PreparedStatement guildUpdate = plugin.connection.prepareStatement("UPDATE `player_data` SET guild=? WHERE player=?;");
+                                    guildUpdate.setString(1, plugin.assignedguilds.get(p.getName()));
+                                    guildUpdate.setString(2, e.getPlayer().getUniqueId().toString());
+                                    guildUpdate.executeUpdate();
 
-                                rankUpdate.close();
-                                guildUpdate.close();
-                                guildRankUpdate.close();
+                                    PreparedStatement guildRankUpdate = plugin.connection.prepareStatement("UPDATE `player_data` SET rank_guild=? WHERE player=?;");
+                                    guildRankUpdate.setString(1, plugin.guildranks.get(p.getName()));
+                                    guildRankUpdate.setString(2, e.getPlayer().getUniqueId().toString());
+                                    guildRankUpdate.executeUpdate();
+
+                                    plusColorUpdate.close();
+                                    rankUpdate.close();
+                                    guildUpdate.close();
+                                    guildRankUpdate.close();
+                                }catch (Exception e) {
+                                    ProxyServer.getInstance().broadcast(new TextComponent("1" + e.getMessage()));
+                                }
                             } else {
-                                PreparedStatement rankUpdate = plugin.connection.prepareStatement("UPDATE `player_data` SET rank=? WHERE player=?;");
-                                rankUpdate.setString(1, plugin.hypixelranks.get(p.getName()));
-                                rankUpdate.setString(2, e.getPlayer().getUniqueId().toString());
-                                rankUpdate.executeUpdate();
+                                try {
+                                    PreparedStatement rankUpdate = plugin.connection.prepareStatement("UPDATE `player_data` SET rank=? WHERE player=?;");
+                                    rankUpdate.setString(1, plugin.hypixelranks.get(p.getName()));
+                                    rankUpdate.setString(2, e.getPlayer().getUniqueId().toString());
+                                    rankUpdate.executeUpdate();
 
-                                PreparedStatement guildUpdate = plugin.connection.prepareStatement("UPDATE `player_data` SET guild=? WHERE player=?;");
-                                guildUpdate.setString(1, "GUILDLESS");
-                                guildUpdate.setString(2, e.getPlayer().getUniqueId().toString());
-                                guildUpdate.executeUpdate();
+                                    PreparedStatement plusColorUpdate = plugin.connection.prepareStatement("UPDATE `player_data` SET plus_color=? WHERE player=?;");
+                                    plusColorUpdate.setString(1, plugin.plusColor.get(p.getName()));
+                                    plusColorUpdate.setString(2, e.getPlayer().getUniqueId().toString());
+                                    plusColorUpdate.executeUpdate();
 
-                                PreparedStatement guildRankUpdate = plugin.connection.prepareStatement("UPDATE `player_data` SET rank_guild=? WHERE player=?;");
-                                guildRankUpdate.setString(1, "NORANK");
-                                guildRankUpdate.setString(2, e.getPlayer().getUniqueId().toString());
-                                guildRankUpdate.executeUpdate();
+                                    PreparedStatement guildUpdate = plugin.connection.prepareStatement("UPDATE `player_data` SET guild=? WHERE player=?;");
+                                    guildUpdate.setString(1, "GUILDLESS");
+                                    guildUpdate.setString(2, e.getPlayer().getUniqueId().toString());
+                                    guildUpdate.executeUpdate();
 
-                                rankUpdate.close();
-                                guildUpdate.close();
-                                guildRankUpdate.close();
+                                    PreparedStatement guildRankUpdate = plugin.connection.prepareStatement("UPDATE `player_data` SET rank_guild=? WHERE player=?;");
+                                    guildRankUpdate.setString(1, "NORANK");
+                                    guildRankUpdate.setString(2, e.getPlayer().getUniqueId().toString());
+                                    guildRankUpdate.executeUpdate();
+
+                                    plusColorUpdate.close();
+                                    rankUpdate.close();
+                                    guildUpdate.close();
+                                    guildRankUpdate.close();
+                                }catch (Exception e) {
+                                    ProxyServer.getInstance().broadcast(new TextComponent("2" + e.getMessage()));
+                                }
                             }
                         }
-                        sql.close();
-                        resultSet.close();
                         ProxyServer.getInstance().getLogger().log(Level.INFO, p.getName() + " was found and now has " + plugin.skyflagwins.get(p.getName())+ " wins!");
                     } else {
-
+                        try {
                         long time = System.currentTimeMillis();
-                        PreparedStatement newPlayer = plugin.connection.prepareStatement("INSERT INTO `player_data` values(?,?,?,0,1000,0,"+ time +",?,?,0,0,0,0,0,?);");
+                        PreparedStatement newPlayer = plugin.connection.prepareStatement("INSERT INTO `player_data` values(?,?,?,0,1000,0,"+ time +",?,?,?,0,0,0,0,0,?);");
                         newPlayer.setString(1, e.getPlayer().getUniqueId().toString());
                         newPlayer.setString(2, e.getPlayer().getName());
+                        newPlayer.setString(4, plugin.hypixelranks.get(p.getName()));
+                        newPlayer.setString(5, plugin.plusColor.get(p.getName()));
                         if (plugin.assignedguilds.containsKey(p.getName())) {
                             if (plugin.assignedguilds.get(p.getName()) != null) {
                                 newPlayer.setString(3, plugin.assignedguilds.get(p.getName()));
-                                newPlayer.setString(4, plugin.hypixelranks.get(p.getName()));
-                                newPlayer.setString(5, plugin.guildranks.get(p.getName()));
+                                newPlayer.setString(6, plugin.guildranks.get(p.getName()));
                             } else {
                                 newPlayer.setString(3, "GUILDLESS");
-                                newPlayer.setString(4, plugin.hypixelranks.get(p.getName()));
-                                newPlayer.setString(5, "NORANK");
+                                newPlayer.setString(6, "NORANK");
                             }
                         } else {
 
                             newPlayer.setString(3, "GUILDLESS");
-                            newPlayer.setString(4, plugin.hypixelranks.get(p.getName()));
-                            newPlayer.setString(5, "NORANK");
+                            newPlayer.setString(6, "NORANK");
                         }
-                        newPlayer.setString(6, "NONE");
+                        newPlayer.setString(7, "NONE");
                         newPlayer.execute();
                         newPlayer.close();
                         ProxyServer.getInstance().broadcast(new TextComponent(ChatColor.RED + "[BOT] SoonTM: " + ChatColor.YELLOW + "Please welcome " + p.getDisplayName() + ChatColor.YELLOW + " to the server!"));
+                        e.getPlayer().sendMessage(new TextComponent(ChatColor.RED + "" + ChatColor.BOLD + "Hello, " + e.getPlayer().getName() + ". We notice that this is your first time joining the server! In order for you to receive your hypixel rank, you must relog. Thank you!"));
                         ProxyServer.getInstance().getLogger().log(Level.INFO, "Created a new player on the database!");
-                    }
-                } catch (Exception error) {
-                    error.printStackTrace();
-                } finally {
-                    plugin.closeConnection();
+                    }catch (Exception e) {
+                            ProxyServer.getInstance().broadcast(new TextComponent("3" + e.getMessage()));
+                        }
                 }
             }
-        }, 12, TimeUnit.MILLISECONDS);
+        }, 500, TimeUnit.MILLISECONDS);
     }
 
-    @EventHandler
-    public void onLeave(PlayerDisconnectEvent event) {
-        pl = event.getPlayer();
-        ProxyServer.getInstance().getScheduler().schedule(plugin, new Runnable() {
-            public void run() {
-                staffLeave(pl);
-            }
-        }, 1, TimeUnit.SECONDS);
-    }
 
     public void staffJoin (ProxiedPlayer player) {
         if (BungeePerms.getInstance().getPermissionsManager().getUser(player.getName()).hasPerm("soontm.staff") || player.getDisplayName().contains("ADMIN") || player.getDisplayName().contains("MOD") || player.getDisplayName().contains("HELPER")) {
-            //plugin.discordBot
             for (ProxiedPlayer player1 : ProxyServer.getInstance().getPlayers()) {
                 if (BungeePerms.getInstance().getPermissionsManager().getUser(player1.getName()).hasPerm("soontm.staff")) {
+                    plugin.getDiscordBot().sendDiscordMessage("STAFF", player.getName() + " has joined!");
                     player1.sendMessage(new TextComponent(ChatColor.DARK_GREEN + "[STAFF] " + player.getDisplayName() + ChatColor.YELLOW + " joined."));
-                }
-            }
-        }
-    }
-
-    public void staffLeave (ProxiedPlayer player) {
-        if (BungeePerms.getInstance().getPermissionsManager().getUser(player.getName()).hasPerm("soontm.staff") || player.getDisplayName().contains("ADMIN") || player.getDisplayName().contains("MOD") || player.getDisplayName().contains("HELPER")) {
-            for (ProxiedPlayer player1 : ProxyServer.getInstance().getPlayers()) {
-                if (BungeePerms.getInstance().getPermissionsManager().getUser(player1.getName()).hasPerm("soontm.staff")) {
-                    player1.sendMessage(new TextComponent(ChatColor.DARK_GREEN + "[STAFF] " + player.getDisplayName() + ChatColor.YELLOW + " left."));
                 }
             }
         }

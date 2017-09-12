@@ -17,6 +17,7 @@
             <id>bungeeperms-repo</id>
             <url>http://repo.wea-ondara.net/repository/public/</url>
         </repository>
+
         <repository>
             <id>javacord-repo</id>
             <url>http://repo.bastian-oppermann.de</url>
@@ -84,11 +85,6 @@
             <version>2.3</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>4.4</version>
-        </dependency>
-        <dependency>
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>
             <version>2.8.1</version>
@@ -97,6 +93,12 @@
             <groupId>net.hypixel</groupId>
             <artifactId>Java</artifactId>
             <version>1.0-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.4</version>
         </dependency>
             <dependency>
                 <groupId>me.ramswaroop.jbot</groupId>
@@ -115,6 +117,7 @@
             <version>3.0-dev-47</version>
             <scope>provided</scope>
         </dependency>
+
         <dependency>
             <groupId>de.btobastian.javacord</groupId>
             <artifactId>javacord</artifactId>

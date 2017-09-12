@@ -4,6 +4,7 @@ import com.github.kraftykaleb.commands.*;
 import com.github.kraftykaleb.listeners.DiscordBot;
 import com.github.kraftykaleb.listeners.onJoin;
 import com.github.kraftykaleb.listeners.onKick;
+import com.github.kraftykaleb.listeners.onLeave;
 import com.google.common.io.ByteStreams;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.JsonNode;
@@ -44,12 +45,11 @@ import java.util.logging.Level;
  */
 public class Main extends Plugin {
 
-    public Connection connection;
+    public static Connection connection;
     public Configuration config;
     public File configFile;
 
     public Set<String> serverList;
-    public SlackBot slackBot;
     public DiscordBot discordBot;
 
     public HashMap<String, Configuration> files = new HashMap<>();
@@ -58,6 +58,7 @@ public class Main extends Plugin {
     public HashMap<String, String> guildranks = new HashMap<>();
     public HashMap<String, String> hypixelranks = new HashMap<>();
     public HashMap<String, String> donationrank = new HashMap<>();
+    public HashMap<String, String> plusColor = new HashMap<>();
 
     public void onEnable() {
 
@@ -67,44 +68,10 @@ public class Main extends Plugin {
 
         registerCommands();
 
+        openConnection();
 
-        discordBot = new DiscordBot("MzQ5MzkwOTU5MzQ5MzM0MDE2.DH4Unw.VoYKLJNM55eW9Uusklsb2Eas9qw");
+        discordBot = new DiscordBot("MzQ5MzkwOTU5MzQ5MzM0MDE2.DH4Unw.VoYKLJNM55eW9Uusklsb2Eas9qw", this);
 
-        slackBot = new SlackBot();
-
-        //session = SlackSessionFactory.createWebSocketSlackSession("xoxb-191922248310-6xlopSsAqDP4D1fMVmsrhjHb");
-
-        //slackMessagePostedEventContent(session);
-
-        /*try {
-            session.connect();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        {
-            // first define the listener
-            SlackMessagePostedListener messagePostedListener = new SlackMessagePostedListener()
-            {
-                @Override
-                public void onEvent(SlackMessagePosted event, SlackSession session)
-                {
-                    SlackChannel channelOnWhichMessageWasPosted = event.getChannel();
-                    String messageContent = event.getMessageContent();
-                    SlackUser messageSender = event.getSender();
-
-                    sendStaffMessage(ChatColor.YELLOW + "[SLACK] " + messageSender.getUserName() + ChatColor.WHITE + ": " + messageContent);
-                }
-            };
-            //add it to the session
-            session.addMessagePostedListener(messagePostedListener);
-
-            //that's it, the listener will get every message post events the bot can get notified on
-            //(IE: the messages sent on channels it joined or sent directly to it)
-        }
-
-        SlackChannel channel = session.findChannelByName("guild-ideas"); //make sure bot is a member of the channel.
-*/
         ProxyServer.getInstance().getScheduler().schedule(this, new Runnable() {
             @Override
             public void run() {
@@ -143,6 +110,10 @@ public class Main extends Plugin {
         }
     }
 
+    public DiscordBot getDiscordBot() {
+        return discordBot;
+    }
+
 
     public synchronized void openConnection() {
         try {
@@ -150,6 +121,17 @@ public class Main extends Plugin {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        ProxyServer.getInstance().getScheduler().schedule(this, new Runnable(){
+            public void run(){
+                closeConnection();
+                try {
+                    connection = DriverManager.getConnection("jdbc:mysql://172.106.202.99:3306/Kraft_SoonTMDatabase", "Kraft", "KraftLegos11");
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }, 4,4, TimeUnit.HOURS);
     }
 
     public synchronized void closeConnection () {
@@ -160,7 +142,7 @@ public class Main extends Plugin {
         }
     }
 
-    public synchronized boolean playerDataContainsPlayer(ProxiedPlayer player) {
+    public boolean playerDataContainsPlayer(ProxiedPlayer player) {
         try {
             PreparedStatement sql = connection.prepareStatement("SELECT * FROM `player_data` WHERE player=?;");
             sql.setString(1, player.getUniqueId().toString());
@@ -181,10 +163,12 @@ public class Main extends Plugin {
     public void registerCommands () {
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Msg("msg"));
         ProxyServer.getInstance().getPluginManager().registerListener(this, new onJoin(this));
+        ProxyServer.getInstance().getPluginManager().registerListener(this, new onLeave(this));
         ProxyServer.getInstance().getPluginManager().registerListener(this, new onKick(this));
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Rank("rank"));
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Staff("staff"));
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Sc(this, "sc"));
+        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Afk("this"));
     }
 
     public void loadFile(Main plugin, String resource) {
@@ -268,7 +252,7 @@ public class Main extends Plugin {
 
     public void findHypixelPlayer(final ProxiedPlayer hypixelPlayer) {
         HttpRequest request = Unirest.get("https://api.hypixel.net/player")
-                .queryString("key", "94512d8c-d83c-46b4-a789-a11347fff344")
+                .queryString("key", "811f839c-b801-48e0-a693-a857e48261a0")
                 .queryString("uuid", hypixelPlayer.getUniqueId().toString());
 
         request.asJsonAsync(new Callback<JsonNode>() {
@@ -281,105 +265,78 @@ public class Main extends Plugin {
                 }
                 apiResponse = apiResponse.getJSONObject("player");
 
-                ProxyServer.getInstance().getLogger().log(Level.INFO, "Found player " + hypixelPlayer.getName());
+                //ProxyServer.getInstance().broadcast(new TextComponent("Found player " + hypixelPlayer.getName()));
 
-                ChatColor plusColor = null;
-                String prefix = null;
-
+                ChatColor rankPlusColor;
 
                 if (apiResponse.has("rank")) {
 
-                    String hypixelRank = (apiResponse.has("rank") ? apiResponse.getString("rank") : "NONE");
+                    String hypixelRank = apiResponse.getString("rank");
                     hypixelranks.put(hypixelPlayer.getName(), hypixelRank);
-                    if (hypixelRank.equals("ADMIN")) {
-                        hypixelPlayer.setDisplayName((ChatColor.RED + "[ADMIN] " + hypixelPlayer.getName()));
-                    }
-                    if (hypixelRank.equals("MODERATOR")) {
-                        hypixelPlayer.setDisplayName(ChatColor.DARK_GREEN + "[MOD] " + hypixelPlayer.getName());
-                    }
-                    if (hypixelRank.equals("HELPER")) {
-                        hypixelPlayer.setDisplayName(ChatColor.BLUE + "[HELPER] " + hypixelPlayer.getName());
-                    }
-                    if (hypixelRank.equals("MVP")) {
-                        hypixelPlayer.setDisplayName(ChatColor.AQUA + "[MVP] " + hypixelPlayer.getName());
-                    }
-                    if (hypixelRank.equals("VIP")) {
-                        hypixelPlayer.setDisplayName(ChatColor.GREEN + "[VIP] " + hypixelPlayer.getName());
-                    }
-                    if (hypixelRank.equals("VIP_PLUS")) {
-                        hypixelPlayer.setDisplayName(ChatColor.GREEN + "[VIP" + ChatColor.GOLD + "+" + ChatColor.GREEN + "] " + hypixelPlayer.getName());
-                    }
+                    String prefix = getRankPrefix(hypixelPlayer);
+
                     if (apiResponse.getString("rank").equals("MVP_PLUS")) {
                         if (apiResponse.has("rankPlusColor")) {
-                            plusColor = ChatColor.valueOf(apiResponse.getString("rankPlusColor"));
-                            hypixelPlayer.setDisplayName(ChatColor.AQUA + "[MVP" + plusColor + "+" + ChatColor.AQUA + "] " + hypixelPlayer.getName());
+                            rankPlusColor = ChatColor.valueOf(apiResponse.getString("rankPlusColor"));
+                            plusColor.put(hypixelPlayer.getName(), apiResponse.getString("rankPlusColor"));
+                            hypixelPlayer.setDisplayName(ChatColor.AQUA + "[MVP" + rankPlusColor + "+" + ChatColor.AQUA + "] " + hypixelPlayer.getName());
+                            return;
                         } else {
-                            hypixelPlayer.setDisplayName(ChatColor.AQUA + "[MVP" + ChatColor.RED + "+" + ChatColor.AQUA + "] " + hypixelPlayer.getName());
+                            hypixelPlayer.setDisplayName(prefix + hypixelPlayer.getName());
+                            plusColor.put(hypixelPlayer.getName(), "NONE");
+                            return;
                         }
+                    } else {
+                        hypixelPlayer.setDisplayName(prefix + hypixelPlayer.getName());
+                        plusColor.put(hypixelPlayer.getName(), "NONE");
+                        return;
                     }
                 } else if (apiResponse.has("packageRank")) {
-                    String oldPackageRank = (apiResponse.has("packageRank") ? apiResponse.getString("packageRank") : "DEFAULT");
+                    String oldPackageRank = apiResponse.getString("packageRank");
                     hypixelranks.put(hypixelPlayer.getName(), oldPackageRank);
-                    if (oldPackageRank.equals("ADMIN")) {
-                        hypixelPlayer.setDisplayName(ChatColor.RED + "[ADMIN] " + hypixelPlayer.getName());
-                    }
-                    if (oldPackageRank.equals("MODERATOR")) {
-                        hypixelPlayer.setDisplayName(ChatColor.DARK_GREEN + "[MOD] " + hypixelPlayer.getName());
-                    }
-                    if (oldPackageRank.equals("HELPER")) {
-                        hypixelPlayer.setDisplayName(ChatColor.BLUE + "[HELPER] " + hypixelPlayer.getName());
-                    }
-                    if (oldPackageRank.equals("MVP")) {
-                        hypixelPlayer.setDisplayName(ChatColor.AQUA + "[MVP] " + hypixelPlayer.getName());
-                    }
-                    if (oldPackageRank.equals("VIP")) {
-                        hypixelPlayer.setDisplayName(ChatColor.GREEN + "[VIP] " + hypixelPlayer.getName());
-                    }
-                    if (oldPackageRank.equals("VIP_PLUS")) {
-                        hypixelPlayer.setDisplayName(ChatColor.GREEN + "[VIP" + ChatColor.GOLD + "+" + "] " + hypixelPlayer.getName());
-                    }
+                    String prefix = getRankPrefix(hypixelPlayer);
+
                     if (apiResponse.getString("packageRank").equals("MVP_PLUS")) {
                         if (apiResponse.has("rankPlusColor")) {
-                            plusColor = ChatColor.valueOf(apiResponse.getString("rankPlusColor"));
-                            hypixelPlayer.setDisplayName(ChatColor.AQUA + "[MVP" + plusColor + "+" + ChatColor.AQUA + "] " + hypixelPlayer.getName());
+                            rankPlusColor = ChatColor.valueOf(apiResponse.getString("rankPlusColor"));
+                            plusColor.put(hypixelPlayer.getName(), apiResponse.getString("rankPlusColor"));
+                            hypixelPlayer.setDisplayName(ChatColor.AQUA + "[MVP" + rankPlusColor + "+" + ChatColor.AQUA + "] " + hypixelPlayer.getName());
+                            return;
                         } else {
-                            hypixelPlayer.setDisplayName(ChatColor.AQUA + "[MVP" + ChatColor.RED + "+" + ChatColor.AQUA + "] " + hypixelPlayer.getName());
+                            hypixelPlayer.setDisplayName(prefix + hypixelPlayer.getName());
+                            plusColor.put(hypixelPlayer.getName(), "NONE");
+                            return;
                         }
+                    } else {
+                        hypixelPlayer.setDisplayName(prefix + hypixelPlayer.getName());
+                        plusColor.put(hypixelPlayer.getName(), "NONE");
+                        return;
                     }
                 } else if (apiResponse.has("newPackageRank")) {
 
-                    String newPackageRank = (apiResponse.has("newPackageRank") ? apiResponse.getString("newPackageRank") : "DEFAULT");
+                    String newPackageRank = apiResponse.getString("newPackageRank");
                     hypixelranks.put(hypixelPlayer.getName(), newPackageRank);
-                    if (newPackageRank.equals("ADMIN")) {
-                        hypixelPlayer.setDisplayName(ChatColor.RED + "[ADMIN] " + hypixelPlayer.getName());
-                    }
-                    if (newPackageRank.equals("MODERATOR")) {
-                        hypixelPlayer.setDisplayName(ChatColor.DARK_GREEN + "[MOD] " + hypixelPlayer.getName());
-                    }
-                    if (newPackageRank.equals("HELPER")) {
-                        hypixelPlayer.setDisplayName(ChatColor.BLUE + "[HELPER] " + hypixelPlayer.getName());
-                    }
-                    if (newPackageRank.equals("MVP")) {
-                        hypixelPlayer.setDisplayName(ChatColor.AQUA + "[MVP] " + hypixelPlayer.getName());
-                    }
-                    if (newPackageRank.equals("VIP")) {
-                        hypixelPlayer.setDisplayName(ChatColor.GREEN + "[VIP] " + hypixelPlayer.getName());
-                    }
-                    if (newPackageRank.equals("VIP_PLUS")) {
-                        hypixelPlayer.setDisplayName(ChatColor.GREEN + "[VIP" + ChatColor.GOLD + "+" + ChatColor.GREEN + "] " + hypixelPlayer.getName());
-                    }
+                    String prefix = getRankPrefix(hypixelPlayer);
                     if (apiResponse.getString("newPackageRank").equals("MVP_PLUS")) {
                         if (apiResponse.has("rankPlusColor")) {
-                            plusColor = ChatColor.valueOf(apiResponse.getString("rankPlusColor"));
-                            hypixelPlayer.setDisplayName(ChatColor.AQUA + "[MVP" + plusColor + "+" + ChatColor.AQUA + "] " + hypixelPlayer.getName());
-
+                            rankPlusColor = ChatColor.valueOf(apiResponse.getString("rankPlusColor"));
+                            plusColor.put(hypixelPlayer.getName(), apiResponse.getString("rankPlusColor"));
+                            hypixelPlayer.setDisplayName(ChatColor.AQUA + "[MVP" + rankPlusColor + "+" + ChatColor.AQUA + "] " + hypixelPlayer.getName());
                         } else {
-                            hypixelPlayer.setDisplayName(ChatColor.AQUA + "[MVP" + ChatColor.RED + "+" + ChatColor.AQUA + "] " + hypixelPlayer.getName());
+                            hypixelPlayer.setDisplayName(prefix + hypixelPlayer.getName());
+                            plusColor.put(hypixelPlayer.getName(), "NONE");
+                            return;
                         }
+                    } else {
+                        hypixelPlayer.setDisplayName(prefix + hypixelPlayer.getName());
+                        plusColor.put(hypixelPlayer.getName(), "NONE");
+                        return;
                     }
                 } else {
                     hypixelPlayer.setDisplayName(ChatColor.GRAY + hypixelPlayer.getName());
+                    plusColor.put(hypixelPlayer.getName(), "NONE");
                     hypixelranks.put(hypixelPlayer.getName(), "DEFAULT");
+                    return;
                 }
                 // Handle response some how
             }
@@ -419,7 +376,7 @@ public class Main extends Plugin {
     }
 
     public void findHypixelGuild(ProxiedPlayer p) {
-        HypixelAPI.getInstance().setApiKey(UUID.fromString("94512d8c-d83c-46b4-a789-a11347fff344"));
+        HypixelAPI.getInstance().setApiKey(UUID.fromString("811f839c-b801-48e0-a693-a857e48261a0"));
 
         Request request = RequestBuilder.newBuilder(RequestType.FIND_GUILD)
                 .addParam(RequestParam.GUILD_BY_PLAYER_UUID, p.getUniqueId())
@@ -428,7 +385,7 @@ public class Main extends Plugin {
             if (failCause != null) {
                 failCause.printStackTrace();
             } else {
-                getLogger().log(Level.INFO, p.getDisplayName() + " is in " + result.getGuild().toString());
+                //getLogger().log(Level.INFO, p.getDisplayName() + " is in " + result.getGuild().toString());
                 config.set(p.getUniqueId() + ".guildId", result.getGuild().toString());
                 saveFile(this, config, "config.yml");
                 findGuildRank(p, result.getGuild().toString());
@@ -439,7 +396,7 @@ public class Main extends Plugin {
     }
 
     public void findGuildRank(ProxiedPlayer p, String id) {
-        HypixelAPI.getInstance().setApiKey(UUID.fromString("94512d8c-d83c-46b4-a789-a11347fff344"));
+        HypixelAPI.getInstance().setApiKey(UUID.fromString("811f839c-b801-48e0-a693-a857e48261a0"));
 
         Request request = RequestBuilder.newBuilder(RequestType.GUILD)
                 .addParam(RequestParam.GUILD_BY_ID, id)
@@ -462,11 +419,40 @@ public class Main extends Plugin {
         });
     }
 
-    public static void sendStaffMessage (String message) {
+    public String getRankPrefix(ProxiedPlayer p) {
+        if (hypixelranks.containsKey(p.getName())) {
+            if (hypixelranks.get(p.getName()).equals("ADMIN")) {
+                return "§c[ADMIN] ";
+            } else if (hypixelranks.get(p.getName()).equals("MODERATOR")) {
+                return "§2[MOD] ";
+            } else if (hypixelranks.get(p.getName()).equals("HELPER")) {
+                return "§9[HELPER] ";
+            } else if (hypixelranks.get(p.getName()).equals("MVP_PLUS")) {
+                return "§b[MVP§c+§b] ";
+            } else if (hypixelranks.get(p.getName()).equals("MVP")) {
+                return "§b[MVP] ";
+            } else if (hypixelranks.get(p.getName()).equals("VIP_PLUS")) {
+                return "§a[VIP§6+§a] ";
+            } else if (hypixelranks.get(p.getName()).equals("VIP")) {
+                return "§a[VIP] ";
+            } else if (hypixelranks.get(p.getName()).equals("DEFAULT")) {
+                return "§7";
+
+            } else {
+                return "§7";
+            }
+        } else {
+            return "§7";
+        }
+    }
+
+    public void sendStaffMessage (String message) {
         for (ProxiedPlayer player1 : ProxyServer.getInstance().getPlayers()) {
             if (BungeePerms.getInstance().getPermissionsManager().getUser(player1.getName()).hasPerm("soontm.staff")) {
                 player1.sendMessage(new TextComponent(ChatColor.DARK_GREEN + "[STAFF] " + message));
             }
         }
     }
+
+
 }
