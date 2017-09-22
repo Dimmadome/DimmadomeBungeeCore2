@@ -44,12 +44,22 @@ public class onKick implements Listener {
 
         ServerInfo kickTo = this.plugin.getProxy().getServerInfo("lobby1");
 
+        String reason = BaseComponent.toLegacyText(ev.getKickReasonComponent());
+
+
         // Avoid the loop
         if (kickedFrom != null && kickedFrom.equals(kickTo)) {
+
+            if (!reason.contains("You are not white")) {
+                ev.getPlayer().sendMessage(new TextComponent(ChatColor.RED + reason.replace(" ", ChatColor.RED + " ")));
+                return;
+            }
+            kickTo = this.plugin.getProxy().getServerInfo("neverland");
+            ev.setCancelled(true);
+            ev.setCancelServer(kickTo);
             return;
         }
 
-        String reason = BaseComponent.toLegacyText(ev.getKickReasonComponent());
 
 
         ev.setCancelled(true);
@@ -57,5 +67,7 @@ public class onKick implements Listener {
         if (!reason.contains("You logged in from another location")) {
             ev.getPlayer().sendMessage(new TextComponent(ChatColor.RED + reason.replace(" ", ChatColor.RED + " ")));
         }
+
+
     }
 }

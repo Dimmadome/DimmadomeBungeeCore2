@@ -18,11 +18,9 @@ public class Afk extends Command {
 
     private Main plugin;
     public Afk(Main instance, String name) {
-        super("sc");
+        super("afk");
         plugin = instance;
     }
-
-    public Afk(String name) {super("afk");}
 
     @Override
     public void execute(CommandSender sender, String[] args) {

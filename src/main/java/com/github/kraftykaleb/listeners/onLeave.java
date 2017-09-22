@@ -1,6 +1,7 @@
 package com.github.kraftykaleb.listeners;
 
 import com.github.kraftykaleb.Main;
+import com.github.kraftykaleb.commands.Report;
 import net.alpenblock.bungeeperms.BungeePerms;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
@@ -23,6 +24,7 @@ public class onLeave implements Listener {
     @EventHandler
     public void onLeave(PlayerDisconnectEvent event) {
         ProxiedPlayer p = event.getPlayer();
+        if (Report.reportList.containsKey(p.getName())) Report.reportList.remove(p.getName().toLowerCase());
         ProxyServer.getInstance().getScheduler().schedule(plugin, new Runnable() {
             public void run() {
                 staffLeave(p);

@@ -1,4 +1,4 @@
-package com.github.kraftykaleb.listeners;
+package com.github.kraftykaleb.objects;
 
 import com.github.kraftykaleb.Main;
 import com.google.common.util.concurrent.FutureCallback;
@@ -32,16 +32,13 @@ public class DiscordBot implements Listener {
         api.connect(new FutureCallback<DiscordAPI>() {
             @Override
             public void onSuccess(DiscordAPI discordAPI) {
-                api.registerListener(new MessageCreateListener() {
-                    @Override
-                    public void onMessageCreate(DiscordAPI discordAPI, Message message) {
-                        if (message.getChannelReceiver().getId().equals("349390716159655937")) {
-                            if (!message.getAuthor().getId().equals("349390959349334016")) {
-                                if (message.getAuthor().hasNickname(message.getChannelReceiver().getServer())) {
-                                    plugin.sendStaffMessage(ChatColor.YELLOW + "[DISCORD] " + message.getAuthor().getNickname(message.getChannelReceiver().getServer()) + ChatColor.WHITE + ": " + message.getContent());
-                                } else {
-                                    plugin.sendStaffMessage(ChatColor.YELLOW + "[DISCORD] " + message.getAuthor().getName() + ChatColor.WHITE + ": " + message.getContent());
-                                }
+                api.registerListener((MessageCreateListener) (discordAPI1, message) -> {
+                    if (message.getChannelReceiver().getId().equals("349390716159655937")) {
+                        if (!message.getAuthor().getId().equals("349390959349334016")) {
+                            if (message.getAuthor().hasNickname(message.getChannelReceiver().getServer())) {
+                                plugin.sendStaffMessage(ChatColor.YELLOW + "[DISCORD] " + message.getAuthor().getNickname(message.getChannelReceiver().getServer()) + ChatColor.WHITE + ": " + message.getContent());
+                            } else {
+                                plugin.sendStaffMessage(ChatColor.YELLOW + "[DISCORD] " + message.getAuthor().getName() + ChatColor.WHITE + ": " + message.getContent());
                             }
                         }
                     }
@@ -58,7 +55,7 @@ public class DiscordBot implements Listener {
 
     public void sendDiscordMessage(String name, String message) {
 
-        DiscordAPI api = Javacord.getApi("MzQ5MzkwOTU5MzQ5MzM0MDE2.DH4Unw.VoYKLJNM55eW9Uusklsb2Eas9qw", true);
+        DiscordAPI api = Javacord.getApi("MzQ5MzkwOTU5MzQ5MzM0MDE2.DJnM1Q.QbGSSzS_BZUpCSLB41wvFaF-Fv8", true);
 
         api.connect(new FutureCallback<DiscordAPI>() {
             @Override

@@ -1,15 +1,12 @@
 package com.github.kraftykaleb.commands;
 
 import com.github.kraftykaleb.Main;
-import com.github.kraftykaleb.listeners.DiscordBot;
 import net.alpenblock.bungeeperms.BungeePerms;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
-
-import java.io.IOException;
 
 /**
  * Created by Kraft on 4/20/2017.

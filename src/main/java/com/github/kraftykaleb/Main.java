@@ -1,11 +1,10 @@
 package com.github.kraftykaleb;
 
 import com.github.kraftykaleb.commands.*;
-import com.github.kraftykaleb.listeners.DiscordBot;
+import com.github.kraftykaleb.objects.DiscordBot;
 import com.github.kraftykaleb.listeners.onJoin;
 import com.github.kraftykaleb.listeners.onKick;
 import com.github.kraftykaleb.listeners.onLeave;
-import com.google.common.io.ByteStreams;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
@@ -34,18 +33,16 @@ import org.json.JSONObject;
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.nio.file.Files;
 import java.sql.*;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
 
 /**
  * Created by Kraft on 4/19/2017.
  */
 public class Main extends Plugin {
 
-    public static Connection connection;
+    public Connection connection;
     public Configuration config;
     public File configFile;
 
@@ -72,16 +69,12 @@ public class Main extends Plugin {
 
         discordBot = new DiscordBot("MzQ5MzkwOTU5MzQ5MzM0MDE2.DH4Unw.VoYKLJNM55eW9Uusklsb2Eas9qw", this);
 
-        ProxyServer.getInstance().getScheduler().schedule(this, new Runnable() {
-            @Override
-            public void run() {
-                for (ServerInfo serverInfo : ProxyServer.getInstance().getServers().values()) {
-                    //String address = "167.114.216.188:25591";
-                    InetSocketAddress address = serverInfo.getAddress();
+        ProxyServer.getInstance().getScheduler().schedule(this, () -> {
+            for (ServerInfo serverInfo : ProxyServer.getInstance().getServers().values()) {
+                InetSocketAddress address = serverInfo.getAddress();
 
-                    if (!pingServer(address)) {
-                        sendStaffMessage(serverInfo.getName() + " is offline, attempting a reboot! " + ChatColor.RED + ("If this message displays more than 5 times, contact a server developer!").replace(" ", ChatColor.RED + " "));
-                    }
+                if (!pingServer(address)) {
+                    sendStaffMessage(serverInfo.getName() + " is offline, attempting a reboot! " + ChatColor.RED + ("If this message    §cdisplays more than 5 times, contact a server developer!").replace(" ",  " §c"));
                 }
             }
         }, 0, 10, TimeUnit.SECONDS);
@@ -160,6 +153,24 @@ public class Main extends Plugin {
         }
     }
 
+    public boolean playerDataContainsPlayer(String player) {
+        try {
+            PreparedStatement sql = connection.prepareStatement("SELECT * FROM `player_data` WHERE player_name=?;");
+            sql.setString(1, player);
+            ResultSet resultSet = sql.executeQuery();
+
+            boolean containsPlayer = resultSet.next();
+
+            sql.close();
+            resultSet.close();
+
+            return containsPlayer;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     public void registerCommands () {
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Msg("msg"));
         ProxyServer.getInstance().getPluginManager().registerListener(this, new onJoin(this));
@@ -168,7 +179,16 @@ public class Main extends Plugin {
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Rank("rank"));
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Staff("staff"));
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Sc(this, "sc"));
-        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Afk("this"));
+        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Afk(this, "afk"));
+        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Report("report"));
+        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Reports("reports"));
+        ProxyServer.getInstance().getPluginManager().registerCommand(this, new OpenReport("openreport"));
+        ProxyServer.getInstance().getPluginManager().registerCommand(this, new BanCommand("ban", this));
+        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Unban(this, "unban"));
+        ProxyServer.getInstance().getPluginManager().registerCommand(this, new MuteCommand(this, "mute"));
+        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Unmute("unmute", this));
+        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Userinfo("userinfo", this));
+        ProxyServer.getInstance().getPluginManager().registerCommand(this, new StatWipe("statwipe", this));
     }
 
     public void loadFile(Main plugin, String resource) {
@@ -383,7 +403,7 @@ public class Main extends Plugin {
                 .createRequest();
         HypixelAPI.getInstance().getAsync(request, (net.hypixel.api.util.Callback<FindGuildReply>) (failCause, result) -> {
             if (failCause != null) {
-                failCause.printStackTrace();
+                //failCause.printStackTrace();
             } else {
                 //getLogger().log(Level.INFO, p.getDisplayName() + " is in " + result.getGuild().toString());
                 config.set(p.getUniqueId() + ".guildId", result.getGuild().toString());
@@ -403,7 +423,7 @@ public class Main extends Plugin {
                 .createRequest();
         HypixelAPI.getInstance().getAsync(request, (net.hypixel.api.util.Callback<GuildReply>) (failCause, result) -> {
             if (failCause != null) {
-                failCause.printStackTrace();
+                //failCause.printStackTrace();
             } else {
                 for (GuildReply.Guild.Member member : result.getGuild().getMembers()) {
                     if (member.getUuid().equals(p.getUniqueId())) {
@@ -449,7 +469,7 @@ public class Main extends Plugin {
     public void sendStaffMessage (String message) {
         for (ProxiedPlayer player1 : ProxyServer.getInstance().getPlayers()) {
             if (BungeePerms.getInstance().getPermissionsManager().getUser(player1.getName()).hasPerm("soontm.staff")) {
-                player1.sendMessage(new TextComponent(ChatColor.DARK_GREEN + "[STAFF] " + message));
+                player1.sendMessage(new TextComponent(ChatColor.DARK_GREEN + "[STAFF] " + ChatColor.WHITE + message));
             }
         }
     }
