@@ -1,19 +1,16 @@
 package com.github.kraftykaleb.listeners;
 
-import com.github.kraftykaleb.Main;
+import com.github.kraftykaleb.BungeeCore;
 import com.github.kraftykaleb.objects.Ban;
 import net.alpenblock.bungeeperms.BungeePerms;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
-import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
-import net.md_5.bungee.api.event.PlayerDisconnectEvent;
 import net.md_5.bungee.api.event.PostLoginEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 
-import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.text.DateFormat;
@@ -28,11 +25,11 @@ import java.util.logging.Level;
 /**
  * Created by Kraft on 4/19/2017.
  */
-public class onJoin implements Listener {
+public class PlayerConnectListener implements Listener {
 
-    private Main plugin;
+    private BungeeCore plugin;
 
-    public onJoin(Main ins) {
+    public PlayerConnectListener(BungeeCore ins) {
         plugin = ins;
     }
 
@@ -161,11 +158,11 @@ public class onJoin implements Listener {
 
                 if (plugin.playerDataContainsPlayer(e.getPlayer())) {
 
-                    if (plugin.assignedguilds.containsKey(p.getName())) {
-                        if (plugin.assignedguilds.get(p.getName()) != null) {
+                    if (plugin.assignedGuilds.containsKey(p.getName())) {
+                        if (plugin.assignedGuilds.get(p.getName()) != null) {
                             try {
                                 PreparedStatement rankUpdate = plugin.connection.prepareStatement("UPDATE `player_data` SET rank=? WHERE player=?;");
-                                rankUpdate.setString(1, plugin.hypixelranks.get(p.getName()));
+                                rankUpdate.setString(1, plugin.hypixelRanks.get(p.getName()));
                                 rankUpdate.setString(2, e.getPlayer().getUniqueId().toString());
                                 rankUpdate.executeUpdate();
 
@@ -175,12 +172,12 @@ public class onJoin implements Listener {
                                 plusColorUpdate.executeUpdate();
 
                                 PreparedStatement guildUpdate = plugin.connection.prepareStatement("UPDATE `player_data` SET guild=? WHERE player=?;");
-                                guildUpdate.setString(1, plugin.assignedguilds.get(p.getName()));
+                                guildUpdate.setString(1, plugin.assignedGuilds.get(p.getName()));
                                 guildUpdate.setString(2, e.getPlayer().getUniqueId().toString());
                                 guildUpdate.executeUpdate();
 
                                 PreparedStatement guildRankUpdate = plugin.connection.prepareStatement("UPDATE `player_data` SET rank_guild=? WHERE player=?;");
-                                guildRankUpdate.setString(1, plugin.guildranks.get(p.getName()));
+                                guildRankUpdate.setString(1, plugin.guildRanks.get(p.getName()));
                                 guildRankUpdate.setString(2, e.getPlayer().getUniqueId().toString());
                                 guildRankUpdate.executeUpdate();
 
@@ -194,7 +191,7 @@ public class onJoin implements Listener {
                         } else {
                             try {
                                 PreparedStatement rankUpdate = plugin.connection.prepareStatement("UPDATE `player_data` SET rank=? WHERE player=?;");
-                                rankUpdate.setString(1, plugin.hypixelranks.get(p.getName()));
+                                rankUpdate.setString(1, plugin.hypixelRanks.get(p.getName()));
                                 rankUpdate.setString(2, e.getPlayer().getUniqueId().toString());
                                 rankUpdate.executeUpdate();
 
@@ -222,19 +219,19 @@ public class onJoin implements Listener {
                             }
                         }
                     }
-                    ProxyServer.getInstance().getLogger().log(Level.INFO, p.getName() + " was found and now has " + plugin.skyflagwins.get(p.getName()) + " wins!");
+                    ProxyServer.getInstance().getLogger().log(Level.INFO, p.getName() + " was found and now has " + plugin.skyflagWins.get(p.getName()) + " wins!");
                 } else {
                     try {
                         long time = System.currentTimeMillis();
                         PreparedStatement newPlayer = plugin.connection.prepareStatement("INSERT INTO `player_data` values(?,?,?,0,1000,0," + time + ",?,?,?,0,0,0,0,0,?);");
                         newPlayer.setString(1, e.getPlayer().getUniqueId().toString());
                         newPlayer.setString(2, e.getPlayer().getName());
-                        newPlayer.setString(4, plugin.hypixelranks.get(p.getName()));
+                        newPlayer.setString(4, plugin.hypixelRanks.get(p.getName()));
                         newPlayer.setString(5, plugin.plusColor.get(p.getName()));
-                        if (plugin.assignedguilds.containsKey(p.getName())) {
-                            if (plugin.assignedguilds.get(p.getName()) != null) {
-                                newPlayer.setString(3, plugin.assignedguilds.get(p.getName()));
-                                newPlayer.setString(6, plugin.guildranks.get(p.getName()));
+                        if (plugin.assignedGuilds.containsKey(p.getName())) {
+                            if (plugin.assignedGuilds.get(p.getName()) != null) {
+                                newPlayer.setString(3, plugin.assignedGuilds.get(p.getName()));
+                                newPlayer.setString(6, plugin.guildRanks.get(p.getName()));
                             } else {
                                 newPlayer.setString(3, "GUILDLESS");
                                 newPlayer.setString(6, "NORANK");

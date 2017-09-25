@@ -1,13 +1,10 @@
 package com.github.kraftykaleb.commands;
 
-import com.github.kraftykaleb.Main;
-import com.github.kraftykaleb.objects.Ban;
+import com.github.kraftykaleb.BungeeCore;
 import com.github.kraftykaleb.objects.Mute;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
-import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
-import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 
 /**
@@ -15,8 +12,8 @@ import net.md_5.bungee.api.plugin.Command;
  */
 public class MuteCommand extends Command {
 
-    private Main plugin;
-    public MuteCommand(Main instance, String name) {
+    private BungeeCore plugin;
+    public MuteCommand(BungeeCore instance) {
         super("mute");
         plugin = instance;
     }

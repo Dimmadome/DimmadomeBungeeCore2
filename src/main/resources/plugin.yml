@@ -1,4 +1,4 @@
-name: SoonTMBungeeCore
-main: com.github.kraftykaleb.Main
-version: 1.0
+name: ${project.name}
+main: com.github.kraftykaleb.BungeeCore
+version: ${project.version}
 author: Kraft

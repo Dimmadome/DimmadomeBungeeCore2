@@ -1,6 +1,6 @@
 package com.github.kraftykaleb.commands;
 
-import com.github.kraftykaleb.Main;
+import com.github.kraftykaleb.BungeeCore;
 import net.alpenblock.bungeeperms.BungeePerms;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
@@ -11,18 +11,17 @@ import net.md_5.bungee.api.plugin.Command;
 /**
  * Created by Kraft on 4/20/2017.
  */
-public class Sc extends Command {
-    private Main plugin;
-    public Sc(Main instance, String name) {
-        super("sc");
+public class StaffChatCommand extends Command {
+
+    private BungeeCore plugin;
+    public StaffChatCommand(BungeeCore instance) {
+        super("staffchat", "", "sc");
         plugin = instance;
     }
 
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-
-
         if (BungeePerms.getInstance().getPermissionsChecker().hasPerm(sender.getName(), "soontm.staff")) {
             if (sender instanceof ProxiedPlayer) {
                 if (args.length == 0) {

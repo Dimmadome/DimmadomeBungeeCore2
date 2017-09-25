@@ -1,16 +1,14 @@
 package com.github.kraftykaleb.commands;
 
-import com.github.kraftykaleb.Main;
+import com.github.kraftykaleb.BungeeCore;
 import com.github.kraftykaleb.objects.Ban;
 import net.alpenblock.bungeeperms.BungeePerms;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
-import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.plugin.Command;
-import net.md_5.bungee.protocol.packet.Chat;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -20,11 +18,11 @@ import java.util.Date;
 /**
  * Created by Kraft on 5/31/2017.
  */
-public class Userinfo extends Command{
+public class UserInfoCommand extends Command{
 
-    private Main plugin;
+    private BungeeCore plugin;
 
-    public Userinfo(String name, Main instance) {
+    public UserInfoCommand(BungeeCore instance) {
         super("userinfo");
         plugin = instance;
     }
@@ -46,7 +44,7 @@ public class Userinfo extends Command{
         if (BungeePerms.getInstance().getPermissionsChecker().hasPerm(sender.getName(), "soontm.staff")) {
             if (args.length == 1) {
                 if (plugin.playerDataContainsPlayer(args[0])) {
-                    sender.sendMessage("-------------- Userinfo for " + args[0] +" --------------");
+                    sender.sendMessage("-------------- UserInfoCommand for " + args[0] +" --------------");
                     try {
                         PreparedStatement nameStatement = plugin.connection.prepareStatement("SELECT rank FROM `player_data` WHERE player_name=?;");
                         nameStatement.setString(1, args[0]);
@@ -54,12 +52,12 @@ public class Userinfo extends Command{
                         ResultSet nameSet = nameStatement.executeQuery();
                         nameSet.next();
                         rank = nameSet.getString("rank");
-                        sender.sendMessage(ChatColor.GOLD + "Rank: " + ChatColor.WHITE + rank);
+                        sender.sendMessage(ChatColor.GOLD + "RankCommand: " + ChatColor.WHITE + rank);
                         nameStatement.close();
                         nameSet.close();
                     } catch (Exception e) {
                         e.printStackTrace();
-                        sender.sendMessage(ChatColor.GOLD + "Rank: " + ChatColor.RED +"NOT FOUND");
+                        sender.sendMessage(ChatColor.GOLD + "RankCommand: " + ChatColor.RED +"NOT FOUND");
                     }
 
                     try {

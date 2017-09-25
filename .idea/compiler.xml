@@ -6,10 +6,12 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="DimmadomeBungeeCore2" />
         <module name="SoonTMBungeeCore" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
+      <module name="DimmadomeBungeeCore2" target="1.8" />
       <module name="SoonTMBungeeCore" target="1.8" />
     </bytecodeTargetLevel>
   </component>

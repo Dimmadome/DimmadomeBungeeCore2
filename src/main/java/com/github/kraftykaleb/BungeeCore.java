@@ -2,9 +2,10 @@ package com.github.kraftykaleb;
 
 import com.github.kraftykaleb.commands.*;
 import com.github.kraftykaleb.objects.DiscordBot;
-import com.github.kraftykaleb.listeners.onJoin;
-import com.github.kraftykaleb.listeners.onKick;
-import com.github.kraftykaleb.listeners.onLeave;
+import com.github.kraftykaleb.listeners.PlayerConnectListener;
+import com.github.kraftykaleb.listeners.KickListener;
+import com.github.kraftykaleb.listeners.PlayerDisconnectListener;
+import com.github.kraftykaleb.rank.Rank;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
@@ -25,6 +26,7 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
+import net.md_5.bungee.api.plugin.PluginManager;
 import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.config.ConfigurationProvider;
 import net.md_5.bungee.config.YamlConfiguration;
@@ -40,31 +42,31 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by Kraft on 4/19/2017.
  */
-public class Main extends Plugin {
+public class BungeeCore extends Plugin {
 
+    private static BungeeCore instance;
     public Connection connection;
     public Configuration config;
     public File configFile;
 
-    public Set<String> serverList;
+    public Set<String> serverList = new HashSet<>();
     public DiscordBot discordBot;
 
     public HashMap<String, Configuration> files = new HashMap<>();
-    public HashMap<String, Integer> skyflagwins = new HashMap<>();
-    public HashMap<String, String> assignedguilds = new HashMap<>();
-    public HashMap<String, String> guildranks = new HashMap<>();
-    public HashMap<String, String> hypixelranks = new HashMap<>();
-    public HashMap<String, String> donationrank = new HashMap<>();
+    public HashMap<String, Integer> skyflagWins = new HashMap<>();
+    public HashMap<String, String> assignedGuilds = new HashMap<>();
+    public HashMap<String, String> guildRanks = new HashMap<>();
+    public HashMap<String, String> hypixelRanks = new HashMap<>();
+//    public HashMap<String, String> donationRank = new HashMap<>();
     public HashMap<String, String> plusColor = new HashMap<>();
 
     public void onEnable() {
-
-        this.serverList = new HashSet<>();
+        instance = this;
 
         registerConfig();
+        registerCommandsAndListeners();
 
-        registerCommands();
-
+        // Opening SQL connection
         openConnection();
 
         discordBot = new DiscordBot("MzQ5MzkwOTU5MzQ5MzM0MDE2.DH4Unw.VoYKLJNM55eW9Uusklsb2Eas9qw", this);
@@ -72,7 +74,6 @@ public class Main extends Plugin {
         ProxyServer.getInstance().getScheduler().schedule(this, () -> {
             for (ServerInfo serverInfo : ProxyServer.getInstance().getServers().values()) {
                 InetSocketAddress address = serverInfo.getAddress();
-
                 if (!pingServer(address)) {
                     sendStaffMessage(serverInfo.getName() + " is offline, attempting a reboot! " + ChatColor.RED + ("If this message    §cdisplays more than 5 times, contact a server developer!").replace(" ",  " §c"));
                 }
@@ -89,18 +90,11 @@ public class Main extends Plugin {
         //} catch (IOException e) {
         //    e.printStackTrace();
         //}
+        closeConnection();
+    }
 
-        try {
-            if (connection != null || connection.isClosed()) {
-                try {
-                    connection.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+    public static BungeeCore getInstance() {
+        return instance;
     }
 
     public DiscordBot getDiscordBot() {
@@ -108,28 +102,32 @@ public class Main extends Plugin {
     }
 
 
-    public synchronized void openConnection() {
+    private synchronized void openConnection() {
         try {
-            connection = DriverManager.getConnection("jdbc:mysql://172.106.202.99:3306/Kraft_SoonTMDatabase", "Kraft", "KraftLegos11");
+            connection = DriverManager.getConnection("jdbc:mysql://172.106.202.99:3306/Kraft_SoonTMDatabase",
+                    "Kraft",
+                    "KraftLegos11");
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        ProxyServer.getInstance().getScheduler().schedule(this, new Runnable(){
-            public void run(){
-                closeConnection();
-                try {
-                    connection = DriverManager.getConnection("jdbc:mysql://172.106.202.99:3306/Kraft_SoonTMDatabase", "Kraft", "KraftLegos11");
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
+        ProxyServer.getInstance().getScheduler().schedule(this, () -> {
+            closeConnection();
+            try {
+                connection = DriverManager.getConnection("jdbc:mysql://172.106.202.99:3306/Kraft_SoonTMDatabase",
+                        "Kraft",
+                        "KraftLegos11");
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
         }, 4,4, TimeUnit.HOURS);
     }
 
-    public synchronized void closeConnection () {
+    private synchronized void closeConnection() {
         try {
-            connection.close();
+            if(connection != null && !connection.isClosed()) {
+                connection.close();
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -171,31 +169,32 @@ public class Main extends Plugin {
         }
     }
 
-    public void registerCommands () {
-        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Msg("msg"));
-        ProxyServer.getInstance().getPluginManager().registerListener(this, new onJoin(this));
-        ProxyServer.getInstance().getPluginManager().registerListener(this, new onLeave(this));
-        ProxyServer.getInstance().getPluginManager().registerListener(this, new onKick(this));
-        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Rank("rank"));
-        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Staff("staff"));
-        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Sc(this, "sc"));
-        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Afk(this, "afk"));
-        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Report("report"));
-        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Reports("reports"));
-        ProxyServer.getInstance().getPluginManager().registerCommand(this, new OpenReport("openreport"));
-        ProxyServer.getInstance().getPluginManager().registerCommand(this, new BanCommand("ban", this));
-        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Unban(this, "unban"));
-        ProxyServer.getInstance().getPluginManager().registerCommand(this, new MuteCommand(this, "mute"));
-        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Unmute("unmute", this));
-        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Userinfo("userinfo", this));
-        ProxyServer.getInstance().getPluginManager().registerCommand(this, new StatWipe("statwipe", this));
+    private void registerCommandsAndListeners() {
+        PluginManager pm = ProxyServer.getInstance().getPluginManager();
+        // Listeners
+        pm.registerListener(this, new PlayerConnectListener(this));
+        pm.registerListener(this, new PlayerDisconnectListener(this));
+        pm.registerListener(this, new KickListener(this));
+
+        // Commands
+        pm.registerCommand(this, new MessageCommand());
+        pm.registerCommand(this, new RankCommand());
+        pm.registerCommand(this, new StaffCommand());
+        pm.registerCommand(this, new StaffChatCommand(this));
+        pm.registerCommand(this, new AfkCommand(this));
+        pm.registerCommand(this, new ReportCommand());
+        pm.registerCommand(this, new ReportsCommand());
+        pm.registerCommand(this, new OpenReportCommand());
+        pm.registerCommand(this, new BanCommand(this));
+        pm.registerCommand(this, new UnbanCommand(this));
+        pm.registerCommand(this, new MuteCommand(this));
+        pm.registerCommand(this, new UnmuteCommand(this));
+        pm.registerCommand(this, new UserInfoCommand(this));
+        pm.registerCommand(this, new StatWipeCommand(this));
+        pm.registerCommand(this, new KickCommand());
     }
 
-    public void loadFile(Main plugin, String resource) {
-
-    }
-
-    public static void saveFile(Main plugin, Configuration config, String resource) {
+    public static void saveFile(BungeeCore plugin, Configuration config, String resource) {
         try {
             ConfigurationProvider.getProvider(YamlConfiguration.class).save(config, new File(plugin.getDataFolder(), resource));
         } catch (IOException e) {
@@ -203,10 +202,10 @@ public class Main extends Plugin {
         }
     }
 
-    public boolean pingServer(InetSocketAddress address) {
+    private boolean pingServer(InetSocketAddress address) {
         try {
             Socket socket = new Socket();
-            socket.connect(address, 1 * 1000);
+            socket.connect(address, 1000);
 
             DataOutputStream out = new DataOutputStream(socket.getOutputStream());
             DataInputStream in = new DataInputStream(socket.getInputStream());
@@ -231,7 +230,6 @@ public class Main extends Plugin {
     }
 
     public void registerConfig() {
-
         if(!getDataFolder().exists()) {
             getDataFolder().mkdir();
         }
@@ -292,7 +290,7 @@ public class Main extends Plugin {
                 if (apiResponse.has("rank")) {
 
                     String hypixelRank = apiResponse.getString("rank");
-                    hypixelranks.put(hypixelPlayer.getName(), hypixelRank);
+                    hypixelRanks.put(hypixelPlayer.getName(), hypixelRank);
                     String prefix = getRankPrefix(hypixelPlayer);
 
                     if (apiResponse.getString("rank").equals("MVP_PLUS")) {
@@ -300,20 +298,17 @@ public class Main extends Plugin {
                             rankPlusColor = ChatColor.valueOf(apiResponse.getString("rankPlusColor"));
                             plusColor.put(hypixelPlayer.getName(), apiResponse.getString("rankPlusColor"));
                             hypixelPlayer.setDisplayName(ChatColor.AQUA + "[MVP" + rankPlusColor + "+" + ChatColor.AQUA + "] " + hypixelPlayer.getName());
-                            return;
                         } else {
                             hypixelPlayer.setDisplayName(prefix + hypixelPlayer.getName());
                             plusColor.put(hypixelPlayer.getName(), "NONE");
-                            return;
                         }
                     } else {
                         hypixelPlayer.setDisplayName(prefix + hypixelPlayer.getName());
                         plusColor.put(hypixelPlayer.getName(), "NONE");
-                        return;
                     }
                 } else if (apiResponse.has("packageRank")) {
                     String oldPackageRank = apiResponse.getString("packageRank");
-                    hypixelranks.put(hypixelPlayer.getName(), oldPackageRank);
+                    hypixelRanks.put(hypixelPlayer.getName(), oldPackageRank);
                     String prefix = getRankPrefix(hypixelPlayer);
 
                     if (apiResponse.getString("packageRank").equals("MVP_PLUS")) {
@@ -335,7 +330,7 @@ public class Main extends Plugin {
                 } else if (apiResponse.has("newPackageRank")) {
 
                     String newPackageRank = apiResponse.getString("newPackageRank");
-                    hypixelranks.put(hypixelPlayer.getName(), newPackageRank);
+                    hypixelRanks.put(hypixelPlayer.getName(), newPackageRank);
                     String prefix = getRankPrefix(hypixelPlayer);
                     if (apiResponse.getString("newPackageRank").equals("MVP_PLUS")) {
                         if (apiResponse.has("rankPlusColor")) {
@@ -355,7 +350,7 @@ public class Main extends Plugin {
                 } else {
                     hypixelPlayer.setDisplayName(ChatColor.GRAY + hypixelPlayer.getName());
                     plusColor.put(hypixelPlayer.getName(), "NONE");
-                    hypixelranks.put(hypixelPlayer.getName(), "DEFAULT");
+                    hypixelRanks.put(hypixelPlayer.getName(), "DEFAULT");
                     return;
                 }
                 // Handle response some how
@@ -376,7 +371,7 @@ public class Main extends Plugin {
 
     }
 
-    public void findSoonTMGuildMembers () {
+    public void findSoonTMGuildMembers() {
         HypixelAPI.getInstance().setApiKey(UUID.fromString("94512d8c-d83c-46b4-a789-a11347fff344"));
 
         Request request = RequestBuilder.newBuilder(RequestType.GUILD)
@@ -387,7 +382,7 @@ public class Main extends Plugin {
                 failCause.printStackTrace();
             } else {
                 for (GuildReply.Guild.Member member : result.getGuild().getMembers()) {
-                    //TODO Check if the
+                    //TODO: Check if the
 
                 }
             }
@@ -406,9 +401,9 @@ public class Main extends Plugin {
                 //failCause.printStackTrace();
             } else {
                 //getLogger().log(Level.INFO, p.getDisplayName() + " is in " + result.getGuild().toString());
-                config.set(p.getUniqueId() + ".guildId", result.getGuild().toString());
+                config.set(p.getUniqueId() + ".guildId", result.getGuild());
                 saveFile(this, config, "config.yml");
-                findGuildRank(p, result.getGuild().toString());
+                findGuildRank(p, result.getGuild());
             }
             HypixelAPI.getInstance().finish();
         });
@@ -428,9 +423,9 @@ public class Main extends Plugin {
                 for (GuildReply.Guild.Member member : result.getGuild().getMembers()) {
                     if (member.getUuid().equals(p.getUniqueId())) {
                         config.set(p.getUniqueId() + ".guildName", result.getGuild().getName());
-                        assignedguilds.put(p.getName(), result.getGuild().getName());
+                        assignedGuilds.put(p.getName(), result.getGuild().getName());
                         config.set(p.getUniqueId() + ".guildRank", member.getRank().toString());
-                        guildranks.put(p.getName(), member.getRank().toString());
+                        guildRanks.put(p.getName(), member.getRank().toString());
                         saveFile(this, config, "config.yml");
                     }
                 }
@@ -440,39 +435,23 @@ public class Main extends Plugin {
     }
 
     public String getRankPrefix(ProxiedPlayer p) {
-        if (hypixelranks.containsKey(p.getName())) {
-            if (hypixelranks.get(p.getName()).equals("ADMIN")) {
-                return "§c[ADMIN] ";
-            } else if (hypixelranks.get(p.getName()).equals("MODERATOR")) {
-                return "§2[MOD] ";
-            } else if (hypixelranks.get(p.getName()).equals("HELPER")) {
-                return "§9[HELPER] ";
-            } else if (hypixelranks.get(p.getName()).equals("MVP_PLUS")) {
-                return "§b[MVP§c+§b] ";
-            } else if (hypixelranks.get(p.getName()).equals("MVP")) {
-                return "§b[MVP] ";
-            } else if (hypixelranks.get(p.getName()).equals("VIP_PLUS")) {
-                return "§a[VIP§6+§a] ";
-            } else if (hypixelranks.get(p.getName()).equals("VIP")) {
-                return "§a[VIP] ";
-            } else if (hypixelranks.get(p.getName()).equals("DEFAULT")) {
-                return "§7";
-
-            } else {
-                return "§7";
+        if (hypixelRanks.containsKey(p.getName())) {
+            try {
+                Rank rank = Rank.valueOf(hypixelRanks.get(p.getName()));
+                return rank.getPrefix();
+            } catch (Exception e) {
+                return Rank.DEFAULT.getColor().toString();
             }
         } else {
-            return "§7";
+            return Rank.DEFAULT.getColor().toString();
         }
     }
 
-    public void sendStaffMessage (String message) {
-        for (ProxiedPlayer player1 : ProxyServer.getInstance().getPlayers()) {
-            if (BungeePerms.getInstance().getPermissionsManager().getUser(player1.getName()).hasPerm("soontm.staff")) {
-                player1.sendMessage(new TextComponent(ChatColor.DARK_GREEN + "[STAFF] " + ChatColor.WHITE + message));
+    public void sendStaffMessage(String message) {
+        for (ProxiedPlayer online : ProxyServer.getInstance().getPlayers()) {
+            if (BungeePerms.getInstance().getPermissionsManager().getUser(online.getName()).hasPerm("soontm.staff")) {
+                online.sendMessage(new TextComponent(ChatColor.DARK_GREEN + "[STAFF] " + ChatColor.WHITE + message));
             }
         }
     }
-
-
 }

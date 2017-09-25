@@ -1,18 +1,11 @@
 package com.github.kraftykaleb.commands;
 
-import com.github.kraftykaleb.Main;
-import net.alpenblock.bungeeperms.BungeePerms;
-import net.md_5.bungee.api.ChatColor;
-import net.md_5.bungee.api.CommandSender;
-import net.md_5.bungee.api.chat.TextComponent;
-import net.md_5.bungee.api.plugin.Command;
-
 /**
  * Created by Kraft on 8/27/2017.
  */
-public class Authenticate {
-    /*private Main plugin;
-    public Authenticate(Main instance, String name) {
+public class AuthenticateCommand {
+    /*private BungeeCore plugin;
+    public AuthenticateCommand(BungeeCore instance, String name) {
         super(name);
         plugin = instance;
     }

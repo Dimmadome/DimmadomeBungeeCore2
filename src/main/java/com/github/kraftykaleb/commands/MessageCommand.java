@@ -6,14 +6,13 @@ import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
-import net.md_5.bungee.protocol.packet.Chat;
 
 /**
  * Created by Kraft on 4/19/2017.
  */
-public class Msg extends Command {
-    public Msg(String name) {
-        super("msg");
+public class MessageCommand extends Command {
+    public MessageCommand() {
+        super("message", "", "msg", "tell", "whisper", "w");
     }
 
     @Override

@@ -1,7 +1,6 @@
 package com.github.kraftykaleb.commands;
 
 import net.alpenblock.bungeeperms.BungeePerms;
-import net.alpenblock.bungeeperms.User;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
@@ -12,8 +11,8 @@ import net.md_5.bungee.api.plugin.Command;
 /**
  * Created by Kraft on 4/19/2017.
  */
-public class Rank extends Command {
-    public Rank(String name) {
+public class RankCommand extends Command {
+    public RankCommand() {
         super("rank", "soontm.master");
     }
 

@@ -13,11 +13,11 @@ import java.util.HashMap;
 /**
  * Created by Kraft on 9/11/2017.
  */
-public class Report extends Command {
+public class ReportCommand extends Command {
 
     public static HashMap<String, String> reportList = new HashMap<>();
 
-    public Report(String name) {
+    public ReportCommand() {
         super("report");
     }
 

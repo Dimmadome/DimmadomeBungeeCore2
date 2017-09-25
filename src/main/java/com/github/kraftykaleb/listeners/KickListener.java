@@ -1,6 +1,6 @@
 package com.github.kraftykaleb.listeners;
 
-import com.github.kraftykaleb.Main;
+import com.github.kraftykaleb.BungeeCore;
 import net.md_5.bungee.api.AbstractReconnectHandler;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
@@ -11,16 +11,14 @@ import net.md_5.bungee.api.event.ServerKickEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 
-import java.util.Iterator;
-
 /**
  * Created by Kraft on 5/5/2017.
  */
-public class onKick implements Listener {
+public class KickListener implements Listener {
 
-    Main plugin;
+    BungeeCore plugin;
 
-    public onKick(Main plugin) {
+    public KickListener(BungeeCore plugin) {
         this.plugin = plugin;
     }
 

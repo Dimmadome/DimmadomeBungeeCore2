@@ -1,10 +1,9 @@
 package com.github.kraftykaleb.commands;
 
-import com.github.kraftykaleb.Main;
+import com.github.kraftykaleb.BungeeCore;
 import net.alpenblock.bungeeperms.BungeePerms;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
-import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.plugin.Command;
 
 import java.sql.PreparedStatement;
@@ -12,12 +11,12 @@ import java.sql.PreparedStatement;
 /**
  * Created by Kraft on 9/18/2017.
  */
-public class StatWipe extends Command {
+public class StatWipeCommand extends Command {
 
-    private Main plugin;
+    private BungeeCore plugin;
 
-    public StatWipe(String name, Main instance) {
-        super(name);
+    public StatWipeCommand(BungeeCore instance) {
+        super("statewipe", "", "playerwipe");
         plugin = instance;
     }
 

@@ -1,6 +1,6 @@
 package com.github.kraftykaleb.commands;
 
-import com.github.kraftykaleb.Main;
+import com.github.kraftykaleb.BungeeCore;
 import net.alpenblock.bungeeperms.BungeePerms;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
@@ -13,11 +13,11 @@ import java.sql.ResultSet;
 /**
  * Created by Kraft on 9/15/2017.
  */
-public class Unmute extends Command{
+public class UnmuteCommand extends Command{
 
-    private Main plugin;
+    private BungeeCore plugin;
 
-    public Unmute(String name, Main instance) {
+    public UnmuteCommand(BungeeCore instance) {
         super("unmute");
         plugin = instance;
     }

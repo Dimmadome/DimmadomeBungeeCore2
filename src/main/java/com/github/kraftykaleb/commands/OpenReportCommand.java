@@ -9,8 +9,9 @@ import net.md_5.bungee.api.plugin.Command;
 /**
  * Created by Kraft on 9/11/2017.
  */
-public class OpenReport extends Command {
-    public OpenReport(String name) {
+public class OpenReportCommand extends Command {
+
+    public OpenReportCommand() {
         super("openreport");
     }
 
@@ -20,7 +21,7 @@ public class OpenReport extends Command {
             if (args.length == 1) {
                 ProxiedPlayer p = (ProxiedPlayer) sender;
                 p.connect(ProxyServer.getInstance().getPlayer(args[0]).getServer().getInfo());
-                Report.reportList.remove(args[0].toLowerCase());
+                ReportCommand.reportList.remove(args[0].toLowerCase());
             }
         }
     }

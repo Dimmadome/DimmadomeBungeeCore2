@@ -1,6 +1,6 @@
 package com.github.kraftykaleb.commands;
 
-import com.github.kraftykaleb.Main;
+import com.github.kraftykaleb.BungeeCore;
 import net.alpenblock.bungeeperms.BungeePerms;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
@@ -13,10 +13,10 @@ import java.sql.ResultSet;
 /**
  * Created by Kraft on 9/12/2017.
  */
-public class Unban extends Command {
-    private Main plugin;
+public class UnbanCommand extends Command {
+    private BungeeCore plugin;
 
-    public Unban(Main instance, String name) {
+    public UnbanCommand(BungeeCore instance) {
         super("unban");
         plugin = instance;
     }

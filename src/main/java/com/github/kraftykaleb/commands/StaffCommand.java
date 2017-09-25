@@ -11,8 +11,9 @@ import net.md_5.bungee.api.plugin.Command;
 /**
  * Created by Kraft on 4/20/2017.
  */
-public class Staff extends Command {
-    public Staff(String name) {
+public class StaffCommand extends Command {
+
+    public StaffCommand() {
         super("staff");
     }
 

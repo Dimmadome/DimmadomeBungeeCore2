@@ -1,7 +1,7 @@
 package com.github.kraftykaleb.listeners;
 
-import com.github.kraftykaleb.Main;
-import com.github.kraftykaleb.commands.Report;
+import com.github.kraftykaleb.BungeeCore;
+import com.github.kraftykaleb.commands.ReportCommand;
 import net.alpenblock.bungeeperms.BungeePerms;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
@@ -16,15 +16,15 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by Kraft on 8/25/2017.
  */
-public class onLeave implements Listener {
+public class PlayerDisconnectListener implements Listener {
 
-    private Main plugin;
-    public onLeave(Main ins) { plugin = ins; }
+    private BungeeCore plugin;
+    public PlayerDisconnectListener(BungeeCore ins) { plugin = ins; }
 
     @EventHandler
     public void onLeave(PlayerDisconnectEvent event) {
         ProxiedPlayer p = event.getPlayer();
-        if (Report.reportList.containsKey(p.getName())) Report.reportList.remove(p.getName().toLowerCase());
+        if (ReportCommand.reportList.containsKey(p.getName())) ReportCommand.reportList.remove(p.getName().toLowerCase());
         ProxyServer.getInstance().getScheduler().schedule(plugin, new Runnable() {
             public void run() {
                 staffLeave(p);

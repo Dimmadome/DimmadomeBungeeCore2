@@ -1,23 +1,21 @@
 package com.github.kraftykaleb.commands;
 
-import com.github.kraftykaleb.Main;
+import com.github.kraftykaleb.BungeeCore;
 import com.github.kraftykaleb.objects.Ban;
 import net.alpenblock.bungeeperms.BungeePerms;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
-import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
-import net.md_5.bungee.api.connection.Server;
 import net.md_5.bungee.api.plugin.Command;
 
 /**
  * Created by Kraft on 5/31/2017.
  */
 public class BanCommand extends Command {
-    private Main plugin;
-    public BanCommand(String name, Main instance) {
+    private BungeeCore plugin;
+    public BanCommand(BungeeCore instance) {
         super("ban");
         plugin = instance;
     }

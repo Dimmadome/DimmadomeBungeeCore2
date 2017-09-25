@@ -1,19 +1,16 @@
 package com.github.kraftykaleb.objects;
 
-import com.github.kraftykaleb.Main;
-import net.alpenblock.bungeeperms.BungeePerms;
+import com.github.kraftykaleb.BungeeCore;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
-import net.md_5.bungee.api.connection.ProxiedPlayer;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -21,11 +18,9 @@ import java.util.concurrent.TimeUnit;
  */
 public class Ban {
 
-    private Main plugin;
+    private BungeeCore plugin;
 
-    public Ban (Main instance, String bannedName, CommandSender issuer, int durationInSeconds, String reason) {
-
-
+    public Ban (BungeeCore instance, String bannedName, CommandSender issuer, int durationInSeconds, String reason) {
         plugin = instance;
         String bannedUUID = null;
         String issuedTime;
@@ -96,7 +91,7 @@ public class Ban {
             e.printStackTrace();
         }
     }
-    public Ban (Main instance, String bannedName, CommandSender issuer, boolean isPerm, String reason) {
+    public Ban (BungeeCore instance, String bannedName, CommandSender issuer, boolean isPerm, String reason) {
         plugin = instance;
         String bannedUUID = null;
         String issuedTime;

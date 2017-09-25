@@ -1,6 +1,6 @@
 package com.github.kraftykaleb.objects;
 
-import com.github.kraftykaleb.Main;
+import com.github.kraftykaleb.BungeeCore;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
@@ -18,12 +18,11 @@ import java.util.concurrent.TimeUnit;
  */
 public class Mute {
 
-    private Main plugin;
+    private BungeeCore plugin;
 
-    public Mute (Main instance, String mutedName, CommandSender issuer, int durationInSeconds, String reason) {
-
-
+    public Mute (BungeeCore instance, String mutedName, CommandSender issuer, int durationInSeconds, String reason) {
         plugin = instance;
+
         String mutedUUID = null;
         String issuedTime;
         String expirationTime;
@@ -34,8 +33,6 @@ public class Mute {
         issuedTime = sdf.format(dt);
 
         plugin.sendStaffMessage(issuer.getName() + " muted " + mutedName + " for " + time + ". Reason: " + reason);
-
-
 
         Calendar cal = Calendar.getInstance();
         cal.setTime(new Date());
@@ -94,7 +91,7 @@ public class Mute {
             e.printStackTrace();
         }
     }
-    public Mute (Main instance, String mutedName, CommandSender issuer, boolean isPerm, String reason) {
+    public Mute (BungeeCore instance, String mutedName, CommandSender issuer, boolean isPerm, String reason) {
         plugin = instance;
         String mutedUUID = null;
         String issuedTime;

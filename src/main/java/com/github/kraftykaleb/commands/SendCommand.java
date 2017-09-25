@@ -4,12 +4,12 @@ import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.plugin.Command;
 
 /**
- * Created by Kraft on 4/19/2017.
+ * Created by Kraft on 9/11/2017.
  */
-public class Hub extends Command {
+public class SendCommand extends Command {
 
-    public Hub(String name) {
-        super("hub");
+    public SendCommand() {
+        super("send");
     }
 
     @Override
